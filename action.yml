@@ -1,0 +1,35 @@
+name: 'Update sonic-buildimage submodule'
+description: 'Update sonic-buildimage submodule reference'
+inputs:
+  submodule-name:
+    description: 'Path in sonic-buildimage to submodule'
+    required: true
+runs:
+  using: "composite"  
+  steps: 
+    - name: Checkout sonic-buildimage
+      uses: actions/checkout@v2
+      with:
+        repository: pins/sonic-buildimage
+        token: ${{ secrets.BOT_ACCESS_TOKEN }}
+
+    - name: Init submodule in sonic-buildimage
+      run: |
+        git submodule init src/${{ inputs.submodule-name }}
+
+    - name: Update submodule reference
+      uses: actions/checkout@v2
+      with:
+        path: src/${{ inputs.submodule-path }}
+
+    - name: Commit change to sonic-buildimage
+      run: |
+        git config user.name "PINS Bot"
+        git config user.email pins-wg@opennetworking.org
+        git commit -am "[Submodule update] ${{ inputs.submodule-name }}"
+
+    - name: Push changes to sonic-buildimage
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        repository: pins/sonic-buildimage
+        github_token: ${{ secrets.BOT_ACCESS_TOKEN }}
